@@ -22,7 +22,6 @@ bool shvedova_v_char_frequency_seq::CharFrequencyTaskSequential::validation() {
 bool shvedova_v_char_frequency_seq::CharFrequencyTaskSequential::run() {
   internal_order_test();
   frequency_ = std::count(input_str_.begin(), input_str_.end(), target_char_);
-  std::this_thread::sleep_for(20ms);
   return true;
 }
 

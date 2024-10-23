@@ -87,7 +87,6 @@ bool shvedova_v_char_freq_mpi::CharFrequencyParallel::run() {
   local_res = std::count(local_input_.begin(), local_input_.end(), target_char_);
 
   boost::mpi::reduce(world, local_res, res, std::plus<>(), 0);
-  std::this_thread::sleep_for(20ms);
   return true;
 }
 
