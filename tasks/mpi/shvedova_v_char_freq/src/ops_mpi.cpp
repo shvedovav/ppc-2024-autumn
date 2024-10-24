@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iostream>
 #include <random>
 #include <string>
 #include <thread>
@@ -42,32 +43,40 @@ bool shvedova_v_char_freq_mpi::CharFrequencySequential::post_processing() {
 
 bool shvedova_v_char_freq_mpi::CharFrequencyParallel::pre_processing() {
   internal_order_test();
-  unsigned int delta = 0;
 
-  if (world.rank() == 0) {
-    input_str_ = std::vector<char>(taskData->inputs_count[0]);
+  int myid = world.rank();
+  int world_size = world.size();
+  unsigned int n = 0;
+
+  if (myid == 0) {
+    n = taskData->inputs_count[0];
+    input_str_ = std::vector<char>(n);
     auto* tmp_ptr = reinterpret_cast<char*>(taskData->inputs[0]);
-    for (unsigned i = 0; i < taskData->inputs_count[0]; i++) {
-      input_str_[i] = tmp_ptr[i];
-    }
-
+    memcpy(input_str_.data(), tmp_ptr, sizeof(char) * n);
     target_char_ = *reinterpret_cast<char*>(taskData->inputs[1]);
-
-    delta = taskData->inputs_count[0] / world.size();
   }
 
-  boost::mpi::broadcast(world, delta, 0);
+  boost::mpi::broadcast(world, n, 0);
   boost::mpi::broadcast(world, target_char_, 0);
 
-  local_input_.resize(delta);
-  if (world.rank() == 0) {
-    for (int proc = 1; proc < world.size(); proc++) {
-      world.send(proc, 0, input_str_.data() + proc * delta, delta);
+  unsigned int vec_send_size = n / world_size;
+  unsigned int overflow_size = n % world_size;
+  std::vector<int> send_counts(world_size, vec_send_size);
+  std::vector<int> displs(world_size, 0);
+
+  for (unsigned int i = 0; i < static_cast<unsigned int>(world_size); ++i) {
+    if (i < static_cast<unsigned int>(overflow_size)) {
+      ++send_counts[i];
     }
-    local_input_ = std::vector<char>(input_str_.begin(), input_str_.begin() + delta);
-  } else {
-    world.recv(0, 0, local_input_.data(), delta);
+    if (i > 0) {
+      displs[i] = displs[i - 1] + send_counts[i - 1];
+    }
   }
+
+  auto loc_vec_size = static_cast<unsigned int>(send_counts[myid]);
+  local_input_.resize(loc_vec_size);
+
+  boost::mpi::scatterv(world, input_str_.data(), send_counts, displs, local_input_.data(), loc_vec_size, 0);
 
   local_res = 0;
   res = 0;

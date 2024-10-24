@@ -147,3 +147,177 @@ TEST(shvedova_v_char_freq_mpi, test_mixed_characters) {
     ASSERT_EQ(reference_count[0], global_count[0]);
   }
 }
+
+TEST(shvedova_v_char_freq_mpi, test_empty_string) {
+  boost::mpi::communicator world;
+  std::vector<char> global_str;
+  std::vector<int32_t> global_count(1, 0);
+  char target_char = 'a';
+
+  std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+
+  if (world.rank() == 0) {
+    global_str = std::vector<char>();
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_str.data()));
+    taskDataPar->inputs_count.emplace_back(global_str.size());
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&target_char));
+    taskDataPar->inputs_count.emplace_back(1);
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_count.data()));
+    taskDataPar->outputs_count.emplace_back(global_count.size());
+  }
+
+  shvedova_v_char_freq_mpi::CharFrequencyParallel testMpiTaskParallel(taskDataPar);
+  ASSERT_EQ(testMpiTaskParallel.validation(), true);
+  testMpiTaskParallel.pre_processing();
+  testMpiTaskParallel.run();
+  testMpiTaskParallel.post_processing();
+
+  if (world.rank() == 0) {
+    ASSERT_EQ(global_count[0], 0);
+  }
+}
+
+TEST(shvedova_v_char_freq_mpi, test_string_length_1) {
+  boost::mpi::communicator world;
+  std::vector<char> global_str;
+  std::vector<int32_t> global_count(1, 0);
+  char target_char = 'a';
+
+  std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+
+  if (world.rank() == 0) {
+    global_str = std::vector<char>(1, 'a');
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_str.data()));
+    taskDataPar->inputs_count.emplace_back(global_str.size());
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&target_char));
+    taskDataPar->inputs_count.emplace_back(1);
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_count.data()));
+    taskDataPar->outputs_count.emplace_back(global_count.size());
+  }
+
+  shvedova_v_char_freq_mpi::CharFrequencyParallel testMpiTaskParallel(taskDataPar);
+  ASSERT_EQ(testMpiTaskParallel.validation(), true);
+  testMpiTaskParallel.pre_processing();
+  testMpiTaskParallel.run();
+  testMpiTaskParallel.post_processing();
+
+  if (world.rank() == 0) {
+    ASSERT_EQ(global_count[0], 1);
+  }
+}
+
+TEST(shvedova_v_char_freq_mpi, test_string_length_2) {
+  boost::mpi::communicator world;
+  std::vector<char> global_str;
+  std::vector<int32_t> global_count(1, 0);
+  char target_char = 'a';
+
+  std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+
+  if (world.rank() == 0) {
+    global_str = std::vector<char>{'a', 'b'};
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_str.data()));
+    taskDataPar->inputs_count.emplace_back(global_str.size());
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&target_char));
+    taskDataPar->inputs_count.emplace_back(1);
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_count.data()));
+    taskDataPar->outputs_count.emplace_back(global_count.size());
+  }
+
+  shvedova_v_char_freq_mpi::CharFrequencyParallel testMpiTaskParallel(taskDataPar);
+  ASSERT_EQ(testMpiTaskParallel.validation(), true);
+  testMpiTaskParallel.pre_processing();
+  testMpiTaskParallel.run();
+  testMpiTaskParallel.post_processing();
+
+  if (world.rank() == 0) {
+    ASSERT_EQ(global_count[0], 1);
+  }
+}
+
+TEST(shvedova_v_char_freq_mpi, test_string_length_3) {
+  boost::mpi::communicator world;
+  std::vector<char> global_str;
+  std::vector<int32_t> global_count(1, 0);
+  char target_char = 'a';
+
+  std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+
+  if (world.rank() == 0) {
+    global_str = std::vector<char>{'a', 'b', 'c'};
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_str.data()));
+    taskDataPar->inputs_count.emplace_back(global_str.size());
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&target_char));
+    taskDataPar->inputs_count.emplace_back(1);
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_count.data()));
+    taskDataPar->outputs_count.emplace_back(global_count.size());
+  }
+
+  shvedova_v_char_freq_mpi::CharFrequencyParallel testMpiTaskParallel(taskDataPar);
+  ASSERT_EQ(testMpiTaskParallel.validation(), true);
+  testMpiTaskParallel.pre_processing();
+  testMpiTaskParallel.run();
+  testMpiTaskParallel.post_processing();
+
+  if (world.rank() == 0) {
+    ASSERT_EQ(global_count[0], 1);
+  }
+}
+
+TEST(shvedova_v_char_freq_mpi, test_string_length_5) {
+  boost::mpi::communicator world;
+  std::vector<char> global_str;
+  std::vector<int32_t> global_count(1, 0);
+  char target_char = 'a';
+
+  std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+
+  if (world.rank() == 0) {
+    global_str = std::vector<char>{'a', 'b', 'c', 'a', 'b'};
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_str.data()));
+    taskDataPar->inputs_count.emplace_back(global_str.size());
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&target_char));
+    taskDataPar->inputs_count.emplace_back(1);
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_count.data()));
+    taskDataPar->outputs_count.emplace_back(global_count.size());
+  }
+
+  shvedova_v_char_freq_mpi::CharFrequencyParallel testMpiTaskParallel(taskDataPar);
+  ASSERT_EQ(testMpiTaskParallel.validation(), true);
+  testMpiTaskParallel.pre_processing();
+  testMpiTaskParallel.run();
+  testMpiTaskParallel.post_processing();
+
+  if (world.rank() == 0) {
+    ASSERT_EQ(global_count[0], 2);
+  }
+}
+
+TEST(shvedova_v_char_freq_mpi, test_string_length_7) {
+  boost::mpi::communicator world;
+  std::vector<char> global_str;
+  std::vector<int32_t> global_count(1, 0);
+  char target_char = 'a';
+
+  std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+
+  if (world.rank() == 0) {
+    global_str = std::vector<char>{'a', 'b', 'c', 'a', 'b', 'c', 'b'};
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_str.data()));
+    taskDataPar->inputs_count.emplace_back(global_str.size());
+    taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&target_char));
+    taskDataPar->inputs_count.emplace_back(1);
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_count.data()));
+    taskDataPar->outputs_count.emplace_back(global_count.size());
+  }
+
+  shvedova_v_char_freq_mpi::CharFrequencyParallel testMpiTaskParallel(taskDataPar);
+  ASSERT_EQ(testMpiTaskParallel.validation(), true);
+  testMpiTaskParallel.pre_processing();
+  testMpiTaskParallel.run();
+  testMpiTaskParallel.post_processing();
+
+  if (world.rank() == 0) {
+    ASSERT_EQ(global_count[0], 2);
+  }
+}

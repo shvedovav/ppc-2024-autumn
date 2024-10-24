@@ -7,9 +7,9 @@
 #include "seq/shvedova_v_char_freq/include/ops_seq.hpp"
 
 TEST(shvedova_v_char_frequency_seq, test_pipeline_run) {
-  std::string input_str = "abcabcabcabcabcabcabcabc";
+  std::string input_str(100000, 'a');
   char target_char = 'a';
-  int expected_frequency = 8;
+  int expected_frequency = 100000;
 
   std::vector<std::string> in_str(1, input_str);
   std::vector<char> in_char(1, target_char);
@@ -44,9 +44,9 @@ TEST(shvedova_v_char_frequency_seq, test_pipeline_run) {
 }
 
 TEST(shvedova_v_char_frequency_seq, test_task_run) {
-  std::string input_str = "aaaaaaaabbbbbbbccccccc";
-  char target_char = 'b';
-  int expected_frequency = 7;
+  std::string input_str(100000, 'a');
+  char target_char = 'a';
+  int expected_frequency = 100000;
 
   std::vector<std::string> in_str(1, input_str);
   std::vector<char> in_char(1, target_char);
