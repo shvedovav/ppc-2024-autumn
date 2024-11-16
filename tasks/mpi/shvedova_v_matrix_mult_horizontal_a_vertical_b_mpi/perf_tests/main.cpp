@@ -48,14 +48,11 @@ TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, pipeline_run) {
   std::vector<int> global_result;
 
   std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
-  int rowA;
-  int colA;
-  int colB;
+  int rowA = 100;
+  int colA = 100;
+  int colB = 100;
 
   if (world.rank() == 0) {
-    rowA = 100;
-    colA = 100;
-    colB = 100;
 
     global_matrix_a = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(rowA, colA);
     global_matrix_b = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(colA, colB);
@@ -117,14 +114,11 @@ TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, task_run) {
   std::vector<int> global_result;
 
   std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
-  int rowA;
-  int colA;
-  int colB;
+  int rowA = 100;
+  int colA = 100;
+  int colB = 100;
 
   if (world.rank() == 0) {
-    rowA = 100;
-    colA = 100;
-    colB = 100;
 
     global_matrix_a = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(rowA, colA);
     global_matrix_b = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(colA, colB);
