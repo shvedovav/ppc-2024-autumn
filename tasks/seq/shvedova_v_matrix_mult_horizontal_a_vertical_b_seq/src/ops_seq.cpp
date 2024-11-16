@@ -40,21 +40,9 @@ bool shvedova_v_matrix_mult_horizontal_a_vertical_b_seq::MatrixMultiplicationTas
 
   auto* sizes = reinterpret_cast<size_t*>(taskData->inputs[0]);
 
-  size_t row_a = sizes[0];
-  size_t col_a = sizes[1];
-  size_t row_b = sizes[2];
-  size_t col_b = sizes[3];
-
-  if (col_a != row_b) {
-    return false;
-  }
-
-  if (taskData->inputs_count[1] != row_a * col_a || taskData->inputs_count[2] != row_b * col_b ||
-      taskData->outputs_count[0] != row_a * col_b) {
-    return false;
-  }
-
-  return true;
+  return (sizes[1] == sizes[2]) &&
+         (taskData->inputs_count[1] == sizes[0] * sizes[1] && taskData->inputs_count[2] == sizes[2] * sizes[3] &&
+          taskData->outputs_count[0] != sizes[0] * sizes[2]);
 }
 
 bool shvedova_v_matrix_mult_horizontal_a_vertical_b_seq::MatrixMultiplicationTaskSequential::run() {
