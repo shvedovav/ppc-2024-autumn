@@ -105,9 +105,9 @@ TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, rec_5x4_4x5) { RunMatri
 TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, validation_zero_matrix) {
   boost::mpi::communicator world;
 
-  int rowA = 1;
-  int colA = 0;
-  int colB = 1;
+  int rowA;
+  int colA;
+  int colB;
 
   std::vector<int> global_matrix_a;
   std::vector<int> global_matrix_b;
@@ -116,6 +116,10 @@ TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, validation_zero_matrix)
   std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
 
   if (world.rank() == 0) {
+    rowA = 1;
+    colA = 0;
+    colB = 1;
+
     global_matrix_a = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(rowA, colA);
     global_matrix_b = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(colA, colB);
     global_result_parallel.resize(rowA * colB, 0);
@@ -137,5 +141,10 @@ TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, validation_zero_matrix)
   auto taskParallel =
       std::make_shared<shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::MatrixMultiplicationTaskParallel>(
           taskDataPar);
-  ASSERT_FALSE(taskParallel->validation());
+
+  if (world.rank() == 0) {
+    ASSERT_FALSE(taskParallel->validation());
+  } else {
+    ASSERT_TRUE(taskParallel->validation());
+  }
 }
