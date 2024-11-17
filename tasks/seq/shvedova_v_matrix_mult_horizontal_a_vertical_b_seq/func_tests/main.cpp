@@ -152,3 +152,33 @@ TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_seq, validation_fails_on_inc
 
   ASSERT_FALSE(matrixTask.validation());
 }
+
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_seq, validation_fails_on_zero_size) {
+  std::vector<size_t> in = {4, 0, 4, 4};
+  std::vector<int> matrix_a = {1, 0, 2, -1, 3, 1, 0, 2, 1, 2, 1, 1, 0, -1, 2, 1};
+  std::vector<int> matrix_b = {2, -1, 0, 1, 1, 0, 3, -1, 0, 1, 2, 0, 1, 3, -1, 2};
+  std::vector<int> expected_result = {1, -2, 5, -1, 9, 3, 1, 6, 5, 3, 7, 1, 0, 5, 0, 3};
+
+  const size_t row_a = in[0];
+  const size_t col_b = in[3];
+
+  std::vector<int> matrix_c(row_a * col_b);
+
+  auto taskDataSeq = std::make_shared<ppc::core::TaskData>();
+
+  taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(const_cast<size_t*>(in.data())));
+  taskDataSeq->inputs_count.emplace_back(in.size());
+
+  taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(const_cast<int*>(matrix_a.data())));
+  taskDataSeq->inputs_count.emplace_back(matrix_a.size());
+
+  taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(const_cast<int*>(matrix_b.data())));
+  taskDataSeq->inputs_count.emplace_back(matrix_b.size());
+
+  taskDataSeq->outputs.emplace_back(reinterpret_cast<uint8_t*>(matrix_c.data()));
+  taskDataSeq->outputs_count.emplace_back(matrix_c.size() + 1);
+
+  shvedova_v_matrix_mult_horizontal_a_vertical_b_seq::MatrixMultiplicationTaskSequential matrixTask(taskDataSeq);
+
+  ASSERT_FALSE(matrixTask.validation());
+}

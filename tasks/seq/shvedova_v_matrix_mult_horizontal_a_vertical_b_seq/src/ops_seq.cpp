@@ -42,7 +42,7 @@ bool shvedova_v_matrix_mult_horizontal_a_vertical_b_seq::MatrixMultiplicationTas
 
   return (sizes[1] == sizes[2]) &&
          (taskData->inputs_count[1] == sizes[0] * sizes[1] && taskData->inputs_count[2] == sizes[2] * sizes[3] &&
-          taskData->outputs_count[0] == sizes[0] * sizes[3]);
+          taskData->outputs_count[0] == sizes[0] * sizes[3] && (sizes[0] * sizes[1] * sizes[2] * sizes[3] != 0));
 }
 
 bool shvedova_v_matrix_mult_horizontal_a_vertical_b_seq::MatrixMultiplicationTaskSequential::run() {

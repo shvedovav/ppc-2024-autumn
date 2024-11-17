@@ -41,7 +41,12 @@ bool shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::MatrixMultiplicationTas
 bool shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::MatrixMultiplicationTaskSequential::validation() {
   internal_order_test();
 
-  return (taskData->inputs_count.size() > 3 && !taskData->outputs_count.empty());
+  int num_r_a_ = *reinterpret_cast<int*>(taskData->inputs[2]);
+  int num_c_a_ = *reinterpret_cast<int*>(taskData->inputs[3]);
+  int num_c_b_ = *reinterpret_cast<int*>(taskData->inputs[4]);
+
+  return (taskData->inputs_count.size() > 3 && !taskData->outputs_count.empty() &&
+          (num_r_a_ * num_c_a_ * num_c_b_ != 0));
 }
 
 bool shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::MatrixMultiplicationTaskSequential::run() {
@@ -151,7 +156,10 @@ bool shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::MatrixMultiplicationTas
 bool shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::MatrixMultiplicationTaskParallel::validation() {
   internal_order_test();
   if (world.rank() == 0) {
-    return (taskData->inputs_count.size() > 3 && !taskData->outputs_count.empty());
+    int num_r_a_ = *reinterpret_cast<int*>(taskData->inputs[2]);
+    int num_c_a_ = *reinterpret_cast<int*>(taskData->inputs[3]);
+    int num_c_b_ = *reinterpret_cast<int*>(taskData->inputs[4]);
+    return (taskData->inputs_count.size() > 3 && !taskData->outputs_count.empty() && (num_r_a_ * num_c_a_ * num_c_b_ != 0));
   }
   return true;
 }

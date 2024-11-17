@@ -11,21 +11,6 @@
 
 namespace shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi {
 
-void matrix_multiply_square_result(const std::vector<int>& a, const std::vector<int>& b, std::vector<int>& result,
-                                   int rows_a, int cols_b) {
-  result.resize(rows_a * cols_b, 0);
-
-  for (int i = 0; i < rows_a; ++i) {
-    for (int j = 0; j < cols_b; ++j) {
-      int sum = 0;
-      for (int k = 0; k < cols_b; ++k) {
-        sum += a[i * cols_b + k] * b[k * rows_a + j];
-      }
-      result[i * cols_b + j] = sum;
-    }
-  }
-}
-
 std::vector<int> getRandomMatrix(int rows, int cols) {
   std::random_device dev;
   std::mt19937 gen(dev());
@@ -45,37 +30,47 @@ TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, pipeline_run) {
 
   std::vector<int> global_matrix_a;
   std::vector<int> global_matrix_b;
-  std::vector<int> global_result;
+  std::vector<int> global_result_seq;
+  std::vector<int> global_result_par;
 
   std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+  std::shared_ptr<ppc::core::TaskData> taskDataSeq = std::make_shared<ppc::core::TaskData>();
   int rowA = 100;
   int colA = 100;
   int colB = 100;
 
   if (world.rank() == 0) {
-
     global_matrix_a = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(rowA, colA);
     global_matrix_b = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(colA, colB);
 
-    global_result.resize(rowA * colB, 0);
+    global_result_seq.resize(rowA * colB, 0);
+    global_result_par.resize(rowA * colB, 0);
 
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_matrix_a.data()));
     taskDataPar->inputs_count.emplace_back(global_matrix_a.size());
-
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_matrix_b.data()));
     taskDataPar->inputs_count.emplace_back(global_matrix_b.size());
-
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&rowA));
     taskDataPar->inputs_count.emplace_back(1);
-
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&colA));
     taskDataPar->inputs_count.emplace_back(1);
-
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&colB));
     taskDataPar->inputs_count.emplace_back(1);
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_result_par.data()));
+    taskDataPar->outputs_count.emplace_back(global_result_seq.size());
 
-    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_result.data()));
-    taskDataPar->outputs_count.emplace_back(global_result.size());
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_matrix_a.data()));
+    taskDataSeq->inputs_count.emplace_back(global_matrix_a.size());
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_matrix_b.data()));
+    taskDataSeq->inputs_count.emplace_back(global_matrix_b.size());
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(&rowA));
+    taskDataSeq->inputs_count.emplace_back(1);
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(&colA));
+    taskDataSeq->inputs_count.emplace_back(1);
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(&colB));
+    taskDataSeq->inputs_count.emplace_back(1);
+    taskDataSeq->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_result_seq.data()));
+    taskDataSeq->outputs_count.emplace_back(global_result_seq.size());
   }
 
   auto taskParallel =
@@ -85,6 +80,16 @@ TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, pipeline_run) {
   taskParallel->pre_processing();
   taskParallel->run();
   taskParallel->post_processing();
+
+  if (world.rank() == 0) {
+    auto taskSequential =
+        std::make_shared<shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::MatrixMultiplicationTaskSequential>(
+            taskDataSeq);
+    ASSERT_EQ(taskSequential->validation(), true);
+    taskSequential->pre_processing();
+    taskSequential->run();
+    taskSequential->post_processing();
+  }
 
   auto perfAttr = std::make_shared<ppc::core::PerfAttr>();
   perfAttr->num_running = 10;
@@ -98,10 +103,7 @@ TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, pipeline_run) {
 
   if (world.rank() == 0) {
     ppc::core::Perf::print_perf_statistic(perfResults);
-    std::vector<int> expected_result;
-    shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::matrix_multiply_square_result(global_matrix_a, global_matrix_b,
-                                                                                      expected_result, rowA, colB);
-    ASSERT_EQ(global_result, expected_result);
+    ASSERT_EQ(global_result_seq, global_result_par);
   }
 }
 
@@ -111,37 +113,47 @@ TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, task_run) {
 
   std::vector<int> global_matrix_a;
   std::vector<int> global_matrix_b;
-  std::vector<int> global_result;
+  std::vector<int> global_result_seq;
+  std::vector<int> global_result_par;
 
   std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+  std::shared_ptr<ppc::core::TaskData> taskDataSeq = std::make_shared<ppc::core::TaskData>();
   int rowA = 100;
   int colA = 100;
   int colB = 100;
 
   if (world.rank() == 0) {
-
     global_matrix_a = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(rowA, colA);
     global_matrix_b = shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::getRandomMatrix(colA, colB);
 
-    global_result.resize(rowA * colB, 0);
+    global_result_seq.resize(rowA * colB, 0);
+    global_result_par.resize(rowA * colB, 0);
 
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_matrix_a.data()));
     taskDataPar->inputs_count.emplace_back(global_matrix_a.size());
-
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_matrix_b.data()));
     taskDataPar->inputs_count.emplace_back(global_matrix_b.size());
-
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&rowA));
     taskDataPar->inputs_count.emplace_back(1);
-
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&colA));
     taskDataPar->inputs_count.emplace_back(1);
-
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&colB));
     taskDataPar->inputs_count.emplace_back(1);
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_result_par.data()));
+    taskDataPar->outputs_count.emplace_back(global_result_seq.size());
 
-    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_result.data()));
-    taskDataPar->outputs_count.emplace_back(global_result.size());
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_matrix_a.data()));
+    taskDataSeq->inputs_count.emplace_back(global_matrix_a.size());
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(global_matrix_b.data()));
+    taskDataSeq->inputs_count.emplace_back(global_matrix_b.size());
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(&rowA));
+    taskDataSeq->inputs_count.emplace_back(1);
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(&colA));
+    taskDataSeq->inputs_count.emplace_back(1);
+    taskDataSeq->inputs.emplace_back(reinterpret_cast<uint8_t*>(&colB));
+    taskDataSeq->inputs_count.emplace_back(1);
+    taskDataSeq->outputs.emplace_back(reinterpret_cast<uint8_t*>(global_result_seq.data()));
+    taskDataSeq->outputs_count.emplace_back(global_result_seq.size());
   }
 
   auto taskParallel =
@@ -151,6 +163,16 @@ TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, task_run) {
   taskParallel->pre_processing();
   taskParallel->run();
   taskParallel->post_processing();
+
+  if (world.rank() == 0) {
+    auto taskSequential =
+        std::make_shared<shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::MatrixMultiplicationTaskSequential>(
+            taskDataSeq);
+    ASSERT_EQ(taskSequential->validation(), true);
+    taskSequential->pre_processing();
+    taskSequential->run();
+    taskSequential->post_processing();
+  }
 
   auto perfAttr = std::make_shared<ppc::core::PerfAttr>();
   perfAttr->num_running = 10;
@@ -164,9 +186,6 @@ TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, task_run) {
 
   if (world.rank() == 0) {
     ppc::core::Perf::print_perf_statistic(perfResults);
-    std::vector<int> expected_result;
-    shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi::matrix_multiply_square_result(global_matrix_a, global_matrix_b,
-                                                                                      expected_result, rowA, colB);
-    ASSERT_EQ(global_result, expected_result);
+    ASSERT_EQ(global_result_seq, global_result_par);
   }
 }
