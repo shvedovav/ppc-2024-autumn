@@ -14,7 +14,7 @@ namespace shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi {
 std::vector<int> getRandomMatrix(int rows, int cols) {
   std::random_device dev;
   std::mt19937 gen(dev());
-  std::uniform_int_distribution<> dist(0, 1000);
+  std::uniform_int_distribution<> dist(-100, 1000);
   std::vector<int> matrix(rows * cols);
   for (int i = 0; i < rows * cols; i++) {
     matrix[i] = dist(gen);
@@ -24,7 +24,7 @@ std::vector<int> getRandomMatrix(int rows, int cols) {
 
 }  // namespace shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi
 
-TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, pipeline_run) {
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, pipeline_run) {
   boost::mpi::environment env;
   boost::mpi::communicator world;
 
@@ -107,7 +107,7 @@ TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, pipeline_run) {
   }
 }
 
-TEST(svedova_v_matrix_mult_horizontal_a_vertical_b_mpi, task_run) {
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, task_run) {
   boost::mpi::environment env;
   boost::mpi::communicator world;
 

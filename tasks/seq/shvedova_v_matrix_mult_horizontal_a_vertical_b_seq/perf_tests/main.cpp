@@ -7,7 +7,7 @@
 #include "core/perf/include/perf.hpp"
 #include "seq/shvedova_v_matrix_mult_horizontal_a_vertical_b_seq/include/ops_seq.hpp"
 
-TEST(matrix_multiplication_perf_test, test_pipeline_run) {
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_seq, test_pipeline_run) {
   const int row_a = 1000;
   const int col_a = 1000;
   const int row_b = 1000;
@@ -51,7 +51,7 @@ TEST(matrix_multiplication_perf_test, test_pipeline_run) {
   ASSERT_EQ(answer, matrix_c.size());
 }
 
-TEST(matrix_multiplication_perf_test, test_task_run) {
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_seq, test_task_run) {
   const int row_a = 1000;
   const int col_a = 1000;
   const int row_b = 1000;
