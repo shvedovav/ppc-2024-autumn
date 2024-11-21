@@ -39,6 +39,15 @@ void RunMatrixMultiplicationTest(const std::vector<size_t>& in, const std::vecto
   }
 }
 
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_seq, test_matrix_1x1_1x1) {
+  std::vector<size_t> in = {1, 1, 1, 1};
+  std::vector<int> matrix_a = {5};
+  std::vector<int> matrix_b = {6};
+  std::vector<int> expected_result = {30};
+
+  RunMatrixMultiplicationTest(in, matrix_a, matrix_b, expected_result);
+}
+
 TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_seq, test_matrix_2x3_3x1) {
   std::vector<size_t> in = {2, 3, 3, 1};
   std::vector<int> matrix_a = {1, -2, 3, 4, -5, 6};
