@@ -14,7 +14,7 @@ namespace shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi {
 std::vector<int> getRandomMatrix(int rows, int cols) {
   std::random_device dev;
   std::mt19937 gen(dev());
-  std::uniform_int_distribution<> dist(-100, 1000);
+  std::uniform_int_distribution<> dist(-1000, 1000);
   std::vector<int> matrix(rows * cols);
   for (int i = 0; i < rows * cols; i++) {
     matrix[i] = dist(gen);
@@ -101,6 +101,14 @@ TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, rec_4x1_1x5) { RunMatri
 TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, rec_4x3_3x5) { RunMatrixMultiplicationTest(4, 3, 5); }
 
 TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, rec_5x4_4x5) { RunMatrixMultiplicationTest(4, 3, 5); }
+
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, sq_1x1_1x1) { RunMatrixMultiplicationTest(1, 1, 1); }
+
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, rec_7x11_11x13) { RunMatrixMultiplicationTest(7, 11, 13); }
+
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, rec_4x8_8x16) { RunMatrixMultiplicationTest(4, 8, 16); }
+
+TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, rec_1x7_7x16) { RunMatrixMultiplicationTest(1, 7, 16); }
 
 TEST(shvedova_v_matrix_mult_horizontal_a_vertical_b_mpi, validation_zero_matrix) {
   boost::mpi::communicator world;
