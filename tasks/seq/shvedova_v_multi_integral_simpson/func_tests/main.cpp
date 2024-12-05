@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
+#include <numbers>
 #include <vector>
 
 #include "seq/shvedova_v_multi_integral_simpson/include/ops_seq.hpp"
