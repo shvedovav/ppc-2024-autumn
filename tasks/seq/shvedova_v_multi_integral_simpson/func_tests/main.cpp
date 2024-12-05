@@ -73,7 +73,7 @@ TEST(shvedova_v_multidimensional_integral_simpson_seq, TrigonometricFunction_Two
 
 TEST(shvedova_v_multidimensional_integral_simpson_seq, ExponentialFunction_TwoDimensions) {
   shvedova_v_multidimensional_integral_simpson_seq::runTest(
-      {{0, 1}, {0, 1}}, exp(1) - 1.5, shvedova_v_multidimensional_integral_simpson_seq::exponentialFunction);
+      {{0, 1}, {0, 1}}, std::numbers::e - 1.5, shvedova_v_multidimensional_integral_simpson_seq::exponentialFunction);
 }
 
 TEST(shvedova_v_multidimensional_integral_simpson_seq, TripleLinearFunction) {
