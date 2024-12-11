@@ -15,22 +15,23 @@
 
 namespace shvedova_v_mult_int_simpson_mpi {
 
-double integrateSimpsonImpl(std::deque<std::pair<double, double>>& integrationLimits,
-                            std::vector<double>& currentArguments,
-                            const std::function<double(std::vector<double>& args)>& integrandFunction,
-                            double precision);
+using FunctionType = std::function<double(std::vector<double>&)>;
+using Limits = std::deque<std::pair<double, double>>;
+using Simpson1DFunction = std::function<double(double)>;
 
-double integrateSimpson(std::deque<std::pair<double, double>> integrationLimits, double precision,
-                        const std::function<double(std::vector<double>& args)>& integrandFunction);
+double integrateSimpsonImpl(Limits& integrationLimits, std::vector<double>& currentArguments,
+                            const FunctionType& integrandFunction, double precision);
 
-double integrateSimpsonParallel(boost::mpi::communicator& world,
-                                std::deque<std::pair<double, double>> integrationLimits, double precision,
-                                const std::function<double(std::vector<double>& args)>& integrandFunction);
+double integrateSimpson(Limits integrationLimits, double precision, const FunctionType& integrandFunction);
+
+double integrateSimpson1D(double lowerBound, double upperBound, int segmentCount, const Simpson1DFunction& integrand);
+
+double integrateSimpsonParallel(boost::mpi::communicator& world, Limits integrationLimits, double precision,
+                                const FunctionType& integrandFunction);
 
 class SimpsonMultIntSequential : public ppc::core::Task {
  public:
-  explicit SimpsonMultIntSequential(std::shared_ptr<ppc::core::TaskData> taskData_,
-                                    std::function<double(std::vector<double>& args)>& func_)
+  explicit SimpsonMultIntSequential(std::shared_ptr<ppc::core::TaskData> taskData_, FunctionType& func_)
       : Task(std::move(taskData_)), integrandFunction(func_) {}
 
   bool pre_processing() override;
@@ -39,16 +40,15 @@ class SimpsonMultIntSequential : public ppc::core::Task {
   bool post_processing() override;
 
  private:
-  std::deque<std::pair<double, double>> integrationLimits;
-  std::function<double(std::vector<double>& args)> integrandFunction;
+  Limits integrationLimits;
+  FunctionType integrandFunction;
   double tolerance_{};
   double result_{};
 };
 
 class SimpsonMultIntParallel : public ppc::core::Task {
  public:
-  explicit SimpsonMultIntParallel(std::shared_ptr<ppc::core::TaskData> taskData_,
-                                  std::function<double(std::vector<double>& args)>& func_)
+  explicit SimpsonMultIntParallel(std::shared_ptr<ppc::core::TaskData> taskData_, FunctionType& func_)
       : Task(std::move(taskData_)), integrandFunction(func_) {}
 
   bool pre_processing() override;
@@ -57,8 +57,8 @@ class SimpsonMultIntParallel : public ppc::core::Task {
   bool post_processing() override;
 
  private:
-  std::deque<std::pair<double, double>> integrationLimits;
-  std::function<double(std::vector<double>& args)> integrandFunction;
+  Limits integrationLimits;
+  FunctionType integrandFunction;
   double tolerance_{};
   double result_{};
 

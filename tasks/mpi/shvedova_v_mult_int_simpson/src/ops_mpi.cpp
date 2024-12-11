@@ -1,49 +1,44 @@
 #include "mpi/shvedova_v_mult_int_simpson/include/ops_mpi.hpp"
 
-double shvedova_v_mult_int_simpson_mpi::integrateSimpsonImpl(
-    std::deque<std::pair<double, double>>& integrationLimits, std::vector<double>& currentArguments,
-    const std::function<double(std::vector<double>& args)>& integrandFunction, double precision) {
-  double currentResult = 0.0;
-  double previousResult;
-  int segmentCount = 2;
+double shvedova_v_mult_int_simpson_mpi::integrateSimpson1D(double lowerBound, double upperBound, int segmentCount,
+                                                           const Simpson1DFunction& integrand) {
+  double stepSize = (upperBound - lowerBound) / segmentCount;
+  double result = integrand(lowerBound) + integrand(upperBound);
+
+  for (int i = 1; i < segmentCount; ++i) {
+    double x = lowerBound + i * stepSize;
+    result += ((i % 2 == 0) ? 2 : 4) * integrand(x);
+  }
+
+  return result * stepSize / 3.0;
+}
+
+double shvedova_v_mult_int_simpson_mpi::integrateSimpsonImpl(Limits& integrationLimits,
+                                                             std::vector<double>& currentArguments,
+                                                             const FunctionType& integrandFunction, double precision) {
+  if (integrationLimits.empty()) {
+    return integrandFunction(currentArguments);
+  }
 
   auto [lowerBound, upperBound] = integrationLimits.front();
   integrationLimits.pop_front();
   currentArguments.push_back(0.0);
 
+  double previousResult = 0.0;
+  double currentResult = 0.0;
+  int segmentCount = 2;
+
   do {
     previousResult = currentResult;
-    currentResult = 0.0;
 
-    double stepSize = (upperBound - lowerBound) / segmentCount;
-    currentArguments.back() = lowerBound;
-
-    if (integrationLimits.empty()) {
-      currentResult += integrandFunction(currentArguments);
-    } else {
-      currentResult += integrateSimpsonImpl(integrationLimits, currentArguments, integrandFunction, precision);
-    }
-
-    for (int pointIndex = 1; pointIndex < segmentCount; pointIndex++) {
-      currentArguments.back() = lowerBound + pointIndex * stepSize;
-      double weight = (pointIndex % 2 == 0) ? 2 : 4;
+    currentResult = integrateSimpson1D(lowerBound, upperBound, segmentCount, [&](double x) {
+      currentArguments.back() = x;
 
       if (integrationLimits.empty()) {
-        currentResult += weight * integrandFunction(currentArguments);
-      } else {
-        currentResult +=
-            weight * integrateSimpsonImpl(integrationLimits, currentArguments, integrandFunction, precision);
+        return integrandFunction(currentArguments);
       }
-    }
-
-    currentArguments.back() = upperBound;
-    if (integrationLimits.empty()) {
-      currentResult += integrandFunction(currentArguments);
-    } else {
-      currentResult += integrateSimpsonImpl(integrationLimits, currentArguments, integrandFunction, precision);
-    }
-
-    currentResult *= stepSize / 3.0;
+      return integrateSimpsonImpl(integrationLimits, currentArguments, integrandFunction, precision);
+    });
 
     segmentCount *= 2;
   } while (std::abs(currentResult - previousResult) > precision);
@@ -54,16 +49,16 @@ double shvedova_v_mult_int_simpson_mpi::integrateSimpsonImpl(
   return currentResult;
 }
 
-double shvedova_v_mult_int_simpson_mpi::integrateSimpsonParallel(
-    boost::mpi::communicator& world, std::deque<std::pair<double, double>> integrationLimits, double precision,
-    const std::function<double(std::vector<double>& args)>& integrandFunction) {
+double shvedova_v_mult_int_simpson_mpi::integrateSimpsonParallel(boost::mpi::communicator& world,
+                                                                 Limits integrationLimits, double precision,
+                                                                 const FunctionType& integrandFunction) {
   std::vector<double> currentArguments;
   broadcast(world, integrationLimits, 0);
   broadcast(world, precision, 0);
 
   double globalResult = 0.0;
-  double previousResult;
-  double localResult;
+  double previousResult = 0.0;
+  double localResult = 0.0;
   int segmentCount = 2 * world.size();
 
   auto [globalLowerBound, globalUpperBound] = integrationLimits.front();
@@ -79,42 +74,20 @@ double shvedova_v_mult_int_simpson_mpi::integrateSimpsonParallel(
   while (continueIterations) {
     previousResult = globalResult;
     globalResult = 0.0;
-    localResult = 0.0;
 
-    int localSegmentCount = segmentCount / world.size();
-    double localStepSize = (localUpperBound - localLowerBound) / localSegmentCount;
-
-    currentArguments.back() = localLowerBound;
-    if (integrationLimits.empty()) {
-      localResult += integrandFunction(currentArguments);
-    } else {
-      localResult += integrateSimpsonImpl(integrationLimits, currentArguments, integrandFunction, precision);
-    }
-
-    for (int pointIndex = 1; pointIndex < localSegmentCount; pointIndex++) {
-      currentArguments.back() = localLowerBound + pointIndex * localStepSize;
-      double weight = (pointIndex % 2 == 0) ? 2 : 4;
+    localResult = integrateSimpson1D(localLowerBound, localUpperBound, segmentCount / world.size(), [&](double x) {
+      currentArguments.back() = x;
 
       if (integrationLimits.empty()) {
-        localResult += weight * integrandFunction(currentArguments);
-      } else {
-        localResult += weight * integrateSimpsonImpl(integrationLimits, currentArguments, integrandFunction, precision);
+        return integrandFunction(currentArguments);
       }
-    }
-
-    currentArguments.back() = localUpperBound;
-    if (integrationLimits.empty()) {
-      localResult += integrandFunction(currentArguments);
-    } else {
-      localResult += integrateSimpsonImpl(integrationLimits, currentArguments, integrandFunction, precision);
-    }
-
-    localResult *= localStepSize / 3.0;
+      return integrateSimpsonImpl(integrationLimits, currentArguments, integrandFunction, precision);
+    });
 
     reduce(world, localResult, globalResult, std::plus<>(), 0);
 
-    if (world.rank() == 0 && std::abs(globalResult - previousResult) <= precision) {
-      continueIterations = false;
+    if (world.rank() == 0) {
+      continueIterations = (std::abs(globalResult - previousResult) > precision);
     }
     broadcast(world, continueIterations, 0);
 
@@ -161,9 +134,8 @@ bool shvedova_v_mult_int_simpson_mpi::SimpsonMultIntParallel::post_processing() 
   return true;
 }
 
-double shvedova_v_mult_int_simpson_mpi::integrateSimpson(
-    std::deque<std::pair<double, double>> integrationLimits, double precision,
-    const std::function<double(std::vector<double>& args)>& integrandFunction) {
+double shvedova_v_mult_int_simpson_mpi::integrateSimpson(Limits integrationLimits, double precision,
+                                                         const FunctionType& integrandFunction) {
   std::vector<double> currentArguments;
   return integrateSimpsonImpl(integrationLimits, currentArguments, integrandFunction, precision);
 }

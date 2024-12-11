@@ -46,7 +46,7 @@ void runTestParallel(std::vector<std::pair<double, double>> limits,
     testTaskSequential.run();
     testTaskSequential.post_processing();
 
-    ASSERT_NEAR(seq_out, out, precision);
+    EXPECT_NEAR(seq_out, out, precision);
   }
 }
 
