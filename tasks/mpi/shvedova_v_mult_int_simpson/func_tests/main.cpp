@@ -41,7 +41,7 @@ void runTestParallel(std::vector<std::pair<double, double>> limits,
     taskDataSeq->outputs_count.emplace_back(1);
 
     shvedova_v_mult_int_simpson_mpi::SimpsonMultIntSequential testTaskSequential(taskDataSeq, func);
-    ASSERT_EQ(testTaskSequential.validation(), true);
+    ASSERT_TRUE(testTaskSequential.validation());
     testTaskSequential.pre_processing();
     testTaskSequential.run();
     testTaskSequential.post_processing();
