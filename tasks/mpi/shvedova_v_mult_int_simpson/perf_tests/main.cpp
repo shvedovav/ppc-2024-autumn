@@ -58,8 +58,7 @@ TEST(shvedova_v_mult_int_simpson_mpi, test_pipeline_run) {
 
   if (world.rank() == 0) {
     ppc::core::Perf::print_perf_statistic(perfResults);
-    double result = *reinterpret_cast<double*>(taskDataPar->outputs[0]);
-    EXPECT_TRUE(result > 0.0);
+    EXPECT_TRUE(out > 0.0);
   }
 }
 
@@ -104,7 +103,6 @@ TEST(shvedova_v_mult_int_simpson_mpi, test_task_run) {
 
   if (world.rank() == 0) {
     ppc::core::Perf::print_perf_statistic(perfResults);
-    double result = *reinterpret_cast<double*>(taskDataPar->outputs[0]);
-    EXPECT_TRUE(result > 0.0);
+    EXPECT_TRUE(out > 0.0);
   }
 }
