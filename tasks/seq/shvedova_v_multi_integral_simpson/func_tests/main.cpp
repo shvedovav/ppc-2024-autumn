@@ -32,12 +32,12 @@ void runTest(std::vector<std::pair<double, double>> limits, double expectedValue
   taskData->outputs_count.emplace_back(1);
 
   shvedova_v_multidimensional_integral_simpson_seq::MultidimensionalIntegralSequential task(taskData);
-  ASSERT_EQ(task.validation(), true);
+  ASSERT_TRUE(task.validation());
   task.pre_processing();
   task.run();
   task.post_processing();
 
-  ASSERT_NEAR(expectedValue, result, precision);
+  EXPECT_NEAR(expectedValue, result, precision);
 }
 
 }  // namespace shvedova_v_multidimensional_integral_simpson_seq
