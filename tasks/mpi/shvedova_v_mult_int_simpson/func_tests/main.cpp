@@ -24,7 +24,7 @@ void runTestParallel(std::vector<std::pair<double, double>> limits,
   }
 
   shvedova_v_mult_int_simpson_mpi::SimpsonMultIntParallel testTaskParallel(taskDataPar, func);
-  ASSERT_EQ(testTaskParallel.validation(), true);
+  ASSERT_TRUE(testTaskParallel.validation());
   testTaskParallel.pre_processing();
   testTaskParallel.run();
   testTaskParallel.post_processing();

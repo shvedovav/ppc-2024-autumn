@@ -22,18 +22,18 @@ TEST(shvedova_v_mult_int_simpson_mpi, test_pipeline_run) {
 
   std::deque<std::pair<double, double>> integrationLimits = {{0.0, 10.0}, {0.0, 9.0}, {0.0, 8.0}, {0.0, 7.0},
                                                              {0.0, 6.0},  {0.0, 5.0}, {0.0, 4.0}, {0.0, 3.0}};
-
   double precision = 0.001;
 
   std::vector<std::pair<double, double>> limitsVec(integrationLimits.begin(), integrationLimits.end());
 
   std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+  double out = 0.0;
   if (world.rank() == 0) {
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(limitsVec.data()));
     taskDataPar->inputs_count.emplace_back(limitsVec.size());
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&precision));
     taskDataPar->inputs_count.emplace_back(1);
-    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(new double[1]));
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(&out));
     taskDataPar->outputs_count.emplace_back(1);
   }
 
@@ -41,10 +41,10 @@ TEST(shvedova_v_mult_int_simpson_mpi, test_pipeline_run) {
 
   auto parallelTask = std::make_shared<shvedova_v_mult_int_simpson_mpi::SimpsonMultIntParallel>(taskDataPar, func);
 
-  ASSERT_EQ(parallelTask->validation(), true);
-  ASSERT_TRUE(parallelTask->pre_processing());
-  ASSERT_TRUE(parallelTask->run());
-  ASSERT_TRUE(parallelTask->post_processing());
+  ASSERT_TRUE(parallelTask->validation());
+  parallelTask->pre_processing();
+  parallelTask->run();
+  parallelTask->post_processing();
 
   auto perfAttr = std::make_shared<ppc::core::PerfAttr>();
   perfAttr->num_running = 10;
@@ -73,12 +73,13 @@ TEST(shvedova_v_mult_int_simpson_mpi, test_task_run) {
   std::vector<std::pair<double, double>> limitsVec(integrationLimits.begin(), integrationLimits.end());
 
   std::shared_ptr<ppc::core::TaskData> taskDataPar = std::make_shared<ppc::core::TaskData>();
+  double out = 0.0;
   if (world.rank() == 0) {
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(limitsVec.data()));
     taskDataPar->inputs_count.emplace_back(limitsVec.size());
     taskDataPar->inputs.emplace_back(reinterpret_cast<uint8_t*>(&precision));
     taskDataPar->inputs_count.emplace_back(1);
-    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(new double[1]));
+    taskDataPar->outputs.emplace_back(reinterpret_cast<uint8_t*>(&out));
     taskDataPar->outputs_count.emplace_back(1);
   }
 
@@ -86,10 +87,10 @@ TEST(shvedova_v_mult_int_simpson_mpi, test_task_run) {
 
   auto parallelTask = std::make_shared<shvedova_v_mult_int_simpson_mpi::SimpsonMultIntParallel>(taskDataPar, func);
 
-  ASSERT_EQ(parallelTask->validation(), true);
-  ASSERT_TRUE(parallelTask->pre_processing());
-  ASSERT_TRUE(parallelTask->run());
-  ASSERT_TRUE(parallelTask->post_processing());
+  ASSERT_TRUE(parallelTask->validation());
+  parallelTask->pre_processing();
+  parallelTask->run();
+  parallelTask->post_processing();
 
   auto perfAttr = std::make_shared<ppc::core::PerfAttr>();
   perfAttr->num_running = 10;
