@@ -12,16 +12,21 @@
 #include "mpi/shvedova_v_mult_int_simpson/include/ops_mpi.hpp"
 
 namespace shvedova_v_mult_int_simpson_mpi {
-double octupleProductFunction(std::vector<double>& args) {
-  return args[0] * args[1] * args[2] * args[3] * args[4] * args[5] * args[6] * args[7];
+double tripleComplexFunction(std::vector<double>& args) {
+  double sum_of_squares = 0.0;
+  double sum_of_linear = 0.0;
+  for (size_t i = 0; i < args.size(); ++i) {
+    sum_of_squares += args[i] * args[i];
+    sum_of_linear += args[i];
+  }
+  return std::sin(sum_of_squares) * std::exp(-sum_of_linear);
 }
 }  // namespace shvedova_v_mult_int_simpson_mpi
 
 TEST(shvedova_v_mult_int_simpson_mpi, test_pipeline_run) {
   boost::mpi::communicator world;
 
-  std::deque<std::pair<double, double>> integrationLimits = {{0.0, 10.0}, {0.0, 9.0}, {0.0, 8.0}, {0.0, 7.0},
-                                                             {0.0, 6.0},  {0.0, 5.0}, {0.0, 4.0}, {0.0, 3.0}};
+  std::deque<std::pair<double, double>> integrationLimits = {{0.0, 10.0}, {0.0, 9.0}, {0.0, 8.0}};
   double precision = 0.001;
 
   std::vector<std::pair<double, double>> limitsVec(integrationLimits.begin(), integrationLimits.end());
@@ -37,7 +42,7 @@ TEST(shvedova_v_mult_int_simpson_mpi, test_pipeline_run) {
     taskDataPar->outputs_count.emplace_back(1);
   }
 
-  std::function<double(std::vector<double>&)> func = shvedova_v_mult_int_simpson_mpi::octupleProductFunction;
+  std::function<double(std::vector<double>&)> func = shvedova_v_mult_int_simpson_mpi::tripleComplexFunction;
 
   auto parallelTask = std::make_shared<shvedova_v_mult_int_simpson_mpi::SimpsonMultIntParallel>(taskDataPar, func);
 
@@ -65,8 +70,7 @@ TEST(shvedova_v_mult_int_simpson_mpi, test_pipeline_run) {
 TEST(shvedova_v_mult_int_simpson_mpi, test_task_run) {
   boost::mpi::communicator world;
 
-  std::deque<std::pair<double, double>> integrationLimits = {{0.0, 10.0}, {0.0, 9.0}, {0.0, 8.0}, {0.0, 7.0},
-                                                             {0.0, 6.0},  {0.0, 5.0}, {0.0, 4.0}, {0.0, 3.0}};
+  std::deque<std::pair<double, double>> integrationLimits = {{0.0, 10.0}, {0.0, 9.0}, {0.0, 8.0}};
   double precision = 0.001;
 
   std::vector<std::pair<double, double>> limitsVec(integrationLimits.begin(), integrationLimits.end());
@@ -82,7 +86,7 @@ TEST(shvedova_v_mult_int_simpson_mpi, test_task_run) {
     taskDataPar->outputs_count.emplace_back(1);
   }
 
-  std::function<double(std::vector<double>&)> func = shvedova_v_mult_int_simpson_mpi::octupleProductFunction;
+  std::function<double(std::vector<double>&)> func = shvedova_v_mult_int_simpson_mpi::tripleComplexFunction;
 
   auto parallelTask = std::make_shared<shvedova_v_mult_int_simpson_mpi::SimpsonMultIntParallel>(taskDataPar, func);
 

@@ -8,15 +8,27 @@
 #include "core/perf/include/perf.hpp"
 #include "seq/shvedova_v_multi_integral_simpson/include/ops_seq.hpp"
 
+namespace shvedova_v_multidimensional_integral_simpson_seq {
+double tripleComplexFunction(std::vector<double>& args) {
+  double sum_of_squares = 0.0;
+  double sum_of_linear = 0.0;
+  for (size_t i = 0; i < args.size(); ++i) {
+    sum_of_squares += args[i] * args[i];
+    sum_of_linear += args[i];
+  }
+  return std::sin(sum_of_squares) * std::exp(-sum_of_linear);
+}
+}  // namespace shvedova_v_multidimensional_integral_simpson_seq
+
 TEST(shvedova_v_multidimensional_integral_simpson_seq, test_pipeline_run) {
   std::vector<std::pair<double, double>> integration_limits = {
-      {0.0, 1.0},
-      {0.0, 1.0},
-      {0.0, 1.0},
+      {0.0, 10.0},
+      {0.0, 9.0},
+      {0.0, 8.0},
   };
 
   shvedova_v_multidimensional_integral_simpson_seq::FunctionType target_function = [](std::vector<double>& args) {
-    return args[0] * args[0] + args[1] * args[1] + args[2] * args[2];
+    return shvedova_v_multidimensional_integral_simpson_seq::tripleComplexFunction(args);
   };
 
   double tolerance = 1e-3;
@@ -55,13 +67,13 @@ TEST(shvedova_v_multidimensional_integral_simpson_seq, test_pipeline_run) {
 
 TEST(shvedova_v_multidimensional_integral_simpson_seq, test_task_run) {
   std::vector<std::pair<double, double>> integration_limits = {
-      {0.0, 1.0},
-      {0.0, 1.0},
-      {0.0, 1.0},
+      {0.0, 10.0},
+      {0.0, 9.0},
+      {0.0, 8.0},
   };
 
   shvedova_v_multidimensional_integral_simpson_seq::FunctionType target_function = [](std::vector<double>& args) {
-    return args[0] * args[0] + args[1] * args[1] + args[2] * args[2];
+    return shvedova_v_multidimensional_integral_simpson_seq::tripleComplexFunction(args);
   };
 
   double tolerance = 1e-3;
